@@ -159,6 +159,10 @@ OIL_full <- OIL
 MAN <- subset(MAN, select = mask1)
 OIL <- subset(OIL, select = mask4)
 
+# Drop the prices of the items that are removed
+pricesMAN <- pricesMAN[mask1]
+pricesOIL <- pricesOIL[mask4]
+
 
 
 
