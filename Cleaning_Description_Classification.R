@@ -1,5 +1,7 @@
 # R script for cleaning, describing, and classifying eight data sets
 # 
+# The cleaning and classyfying process follow the steps from: https://github.com/danieldehaan96/spdf
+# 
 # List of data sets:
 #   1, Four industrial data sets:
 #         MAN: 3451 items, 150 weeks
