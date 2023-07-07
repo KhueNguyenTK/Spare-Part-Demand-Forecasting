@@ -1,3 +1,13 @@
+# R script for forecasting spare part demands using Willemain together with the corresponding inventory performance
+# 
+# The R code from Daniel de Haan is utilized (and improved for efficiency) in this script
+#
+# Reference:
+# de Haan, D. (2021). GitHub repository for benchmarking spare parts demand forecasting for intermittent demand (Version 1.0.0) [Computer software]. https://github.com/danieldehaan96/spdf
+#
+# Author:
+# Khue Nguyen (Nguyen Hoang Thi Khue), <nguyen@ese.eur.nl>
+
 install.packages("matlab")
 install.packages("markovchain")
 install.packages("weights")
@@ -44,8 +54,6 @@ train_data <- trainOIL
 test_data <- testOIL
 prices <- pricesOIL
 sample <- sampleOIL
-
-
 
 dataName <- "SIM1"
 data <- SIM1
@@ -252,7 +260,6 @@ for (i in 1:ncol(seqFull)) {
   } # end loop r
   
   listLTD[[i]] <- LTD
-  print(paste("Done item", i))
 }
 
 pathPredictions <- paste("C:/Users/574244hn/OneDrive - Erasmus University Rotterdam/RA - Spare parts demand forecasting/K/Updated/Results_Predictions/Willemain_", dataName, ".Rda", sep = "")
@@ -269,71 +276,3 @@ ServiceLevel <- data.frame(avgAFR, totalAFR, holdingCost, targetFillRates, Metho
 colnames(ServiceLevel) <- c("AchievedFillRates_Avg", "AchievedFillRates_Total", "HoldingCosts", "TargetFillRates", "Method")
 file_name <- paste("C:/Users/574244hn/OneDrive - Erasmus University Rotterdam/RA - Spare parts demand forecasting/K/Updated/For Willemain specificially/WILLNORM_IPM_", Method, "_", dataName, ".Rda", sep = "")
 save(ServiceLevel, FillRates, TotalDemand, TotalSupply, file = file_name)
-
-# file_name <- paste("~/Library/CloudStorage/OneDrive-ErasmusUniversityRotterdam/RA - Spare parts demand forecasting/K/Updated/Results_Predictions/Willemain_", data_name, ".Rda", sep = "")
-# save(predictions, file = file_name)
-
-
-
-willemainSteps <- function(data, seqFull, t, k) {
-  # Define new train set / train sequence
-  train <- data[1:(t+k-1)]
-  trainSeq <- seqFull[1:(t+k-1)]
-  nNonZeros <- length(which(trainSeq == 1))
-  
-  statesNames = c(0,1)
-  # STEP 1: Estimate the transition probabilities for the two-state Markov model from historical demands (zero or non-zero)
-  transprob <- createSequenceMatrix(trainSeq, toRowProbs = TRUE, sanitize = FALSE)
-  
-  # The following piece of code only hold for AUTO, for the other type we remove
-  # Check type 2 (only AUTO has this type), and change probabilities of row 1 to the probability 0/1 appears in the train data
-  # if (sum(transprob[1,]) == 0) {
-  #   transprob[1,2] <- nNonZeros / length(trainSeq)
-  #   transprob[1,1] <- 1 - transprob[1,2]
-  # } else if (i == 874 || i == 1196 || i == 2106) { # Check type 6 (specific items), if yes then do the same as for type 2
-  #   transprob[1,2] <- nNonZeros / length(trainSeq)
-  #   transprob[1,1] <- 1 - transprob[1,2]
-  # }
-  
-  # Repeat steps 2-5 for 1000 times
-  b <- 1000       # Number of bootstrapping iterations
-  LTD <- as.data.frame(matrix(nrow = b, ncol = 1))
-  
-  if (length(transprob) != 1) {
-    mc <- new("markovchain", transitionMatrix = matrix((transprob), nrow = 2, dimnames = list(statesNames,statesNames)))
-    for (y in 1:b) {
-      # STEP 2: Use the Markov model (mc) to generate zero and nonzero values over the specified forecast horizon
-      # In our case (one-step-ahead forecast), we just generate one prediction
-      mcprediction <- as.numeric(markovchainSequence(n=1, markovchain=mc,t0 = tail(trainSeq, n=1),include.t0 = FALSE))
-      
-      if (mcprediction != 0) {
-        # STEP 3: Replace the non-zero demands with a random demand value, with replacement, from the already known set of non-zero demands
-        nonzeroes <- train[train != 0]
-        mcprediction <- sample(nonzeroes, size = 1)
-        # STEP 4: Jitter the values of the non-zero demands - a value close to the randomly selected demand value is selected
-        # Formula: Jittered = 1 + int{X + Z * sqrt(X)}, where X is the randomly selected demand, Z is a standard normal random deviate
-        mcprediction <- 1 + round(mcprediction + rnorm(1)*sqrt(mcprediction))
-      }
-      
-      # STEP 5: Sum the predicted values over the forecast horizon, which is meaningless as we only have one forecast...
-      LTD[y,1] <- mcprediction
-    }
-    predictions[k, i] <- mean(LTD[,1])
-  } else { # When there is no zero-demand
-    statesNames = c(1)
-    mc <- new("markovchain", transitionMatrix=matrix((transprob), byrow=TRUE, nrow=1, dimnames=list(statesNames,statesNames)))
-    for (y in 1:b) {
-      mcprediction <- as.numeric(markovchainSequence(n=1, markovchain=mc,t0 = tail(trainSeq, n=1),include.t0 = FALSE))
-      if (mcprediction != 0) {
-        nonzeroes <- train[train != 0]
-        mcprediction <- sample(nonzeroes, size = 1)
-        mcprediction <- 1 + round(mcprediction + rnorm(1)*sqrt(mcprediction))
-      }
-      
-      LTD[y,1] <- mcprediction
-    }
-    predictions[k, i] <- mean(LTD[,1])
-  }
-  
-  return(LTD)
-}
