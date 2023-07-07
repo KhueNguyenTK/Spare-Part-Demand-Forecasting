@@ -1,50 +1,25 @@
+# R script for the inventory performance of seven different methods in forecasting spare part demand
+# 
+# We consider three different distributions: Normal, Gamma, and Negative Binomial
+# 
+# List of Methods:
+#   1, Croston
+#   2, Simple Exponential Smoothing (SES)
+#   3, Syntetos and Boylan (SBA)
+#   4, Teunter-Syntetos-Babai (TSB)
+#   5, Willemain
+#   6, Multi-Layer Perception (MLP)
+#   7, LightGBM
+#
+# Author:
+# Khue Nguyen (Nguyen Hoang Thi Khue), <nguyen@ese.eur.nl>
+
 targetFillRates <- c(75:99)
 targetFillRates <- targetFillRates / 100
 nTFR <- length(targetFillRates)
 
-data <- MAN
-train_data <- trainMAN
-test_data <- testMAN
-predictions <- Willemain_MAN
-prices <- pricesMAN
-
-data <- AUTO
-train_data <- trainAUTO
-test_data <- testAUTO
-predictions <- Willemain_AUTO
-prices <- pricesAUTO
-
-plotting <- function(data, dataName, distribution) {
-  partialPath = "C:/Users/574244hn/OneDrive - Erasmus University Rotterdam/RA - Spare parts demand forecasting/K/Updated/IPM_L0/"
-  gg1 <- ggplot(data, aes(x = TargetFillRates, y = AchievedFillRates_Avg, group = Method)) +
-    geom_line(aes(color=Method)) +
-    geom_point(size = 0.5) +
-    ggtitle(paste(dataName,"Target fill rate vs. Achieved fill rate (Avg)"))+ xlab("Target fill rate") + ylab("Achieved fill rate (Avg)")
-  ggsave(gg1, file = paste(partialPath, distribution, "_", dataName, "_1.png", sep = ""))
-  
-  gg2 <- ggplot(data, aes(x = TargetFillRates, y = AchievedFillRates_Total, group = Method)) +
-    geom_line(aes(color=Method)) +
-    geom_point(size = 0.5) +
-    ggtitle(paste(dataName,"Target fill rate vs. Achieved fill rate (Total)"))+ xlab("Target fill rate") + ylab("Achieved fill rate (Total)")
-  ggsave(gg2, file = paste(partialPath, distribution, "_", dataName, "_2.png", sep = ""))
-  
-  gg3 <- ggplot(data, aes(x = AchievedFillRates_Avg, y = HoldingCosts, group = Method)) +
-    geom_line(aes(color=Method)) +
-    geom_point(size = 0.5) +
-    ggtitle(paste(dataName,"Achieved fill rate (Avg) vs. Inventory holding costs"))+ xlab("Achieved fill rate (Avg)") + ylab("Inventory holding costs")
-  ggsave(gg3, file = paste(partialPath, distribution, "_", dataName, "_3.png", sep = ""))
-  
-  gg4 <- ggplot(data, aes(x = AchievedFillRates_Total, y = HoldingCosts, group = Method)) +
-    geom_line(aes(color=Method)) +
-    geom_point(size = 0.5) +
-    ggtitle(paste(dataName,"Achieved fill rate (Total) vs. Inventory holding costs"))+ xlab("Achieved fill rate (Total)") + ylab("Inventory holding costs")
-  ggsave(gg4, file = paste(partialPath, distribution, "_", dataName, "_4.png", sep = ""))
-  
-  return(list(gg1, gg2, gg3, gg4))
-}
-
 ####################################################
-# ESC NORMAL
+### ESC NORMAL ###
 
 ESC_NORM <- function(mu, sigma, R) {
   # return(sigma * dnorm((R - mu) / sigma) + (mu - R) * (1 - pnorm(R, mu, sigma)))
@@ -249,7 +224,6 @@ IPM_NORM <- function(data, train_data, test_data, predictions, prices, data_name
   return(ServiceLevel)
 }
 
-
 set.seed(8377)
 Croston_IPM_NORM_SIM1 <- IPM_NORM(SIM1, trainSIM1, testSIM1, Croston_SIM1, pricesSIM1, "SIM1" , "Croston")
 SES_IPM_NORM_SIM1 <- IPM_NORM(SIM1, trainSIM1, testSIM1, SES_SIM1, pricesSIM1, "SIM1" , "SES")
@@ -321,55 +295,6 @@ TSB_IPM_NORM_OIL <- IPM_NORM(OIL, trainOIL, testOIL, TSB_OIL, pricesOIL, "OIL" ,
 MLP_IPM_NORM_OIL <- IPM_NORM(OIL, trainOIL, testOIL, MLP_OIL, pricesOIL, "OIL" , "MLP")
 LightGBM_IPM_NORM_OIL <- IPM_NORM(OIL, trainOIL, testOIL, LightGBM_OIL, pricesOIL, "OIL" , "LightGBM")
 Willemain_IPM_NORM_OIL <- IPM_NORM(OIL, trainOIL, testOIL, Willemain_OIL, pricesOIL, "OIL" , "Willemain")
-
-
-
-
-
-
-# load("C:/Users/574244hn/OneDrive - Erasmus University Rotterdam/RA - Spare parts demand forecasting/K/Updated/Results_Inventory/IPM_NORM_Croston_MAN.Rda")
-# Croston_IPM_NORM_MAN <- ServiceLevel
-# load("C:/Users/574244hn/OneDrive - Erasmus University Rotterdam/RA - Spare parts demand forecasting/K/Updated/Results_Inventory/IPM_NORM_SES_MAN.Rda")
-# SES_IPM_NORM_MAN <- ServiceLevel
-# load("C:/Users/574244hn/OneDrive - Erasmus University Rotterdam/RA - Spare parts demand forecasting/K/Updated/Results_Inventory/IPM_NORM_SBA_MAN.Rda")
-# SBA_IPM_NORM_MAN <- ServiceLevel
-# load("C:/Users/574244hn/OneDrive - Erasmus University Rotterdam/RA - Spare parts demand forecasting/K/Updated/Results_Inventory/IPM_NORM_TSB_MAN.Rda")
-# TSB_IPM_NORM_MAN <- ServiceLevel
-# load("C:/Users/574244hn/OneDrive - Erasmus University Rotterdam/RA - Spare parts demand forecasting/K/Updated/Results_Inventory/IPM_NORM_Willemain_MAN.Rda")
-# Willemain_IPM_NORM_MAN <- ServiceLevel
-# load("C:/Users/574244hn/OneDrive - Erasmus University Rotterdam/RA - Spare parts demand forecasting/K/Updated/Results_Inventory/IPM_NORM_MLP_MAN.Rda")
-# MLP_IPM_NORM_MAN <- ServiceLevel
-# load("C:/Users/574244hn/OneDrive - Erasmus University Rotterdam/RA - Spare parts demand forecasting/K/Updated/Results_Inventory/IPM_NORM_LightGBM_MAN.Rda")
-# LightGBM_IPM_NORM_MAN <- ServiceLevel
-
-ServiceLevels_ESC_NORM_MAN <- rbind(Croston_IPM_NORM_MAN, SES_IPM_NORM_MAN, SBA_IPM_NORM_MAN, TSB_IPM_NORM_MAN, Willemain_IPM_NORM_MAN, MLP_IPM_NORM_MAN, LightGBM_IPM_NORM_MAN)
-plot_NORM_MAN <- plotting(ServiceLevels_ESC_NORM_MAN, "MAN", "NORM")
-plot_NORM_MAN[1]
-plot_NORM_MAN[2]
-plot_NORM_MAN[3]
-plot_NORM_MAN[4]
-
-ServiceLevels_ESC_NORM_BRAF <- rbind(Croston_IPM_NORM_BRAF, SES_IPM_NORM_BRAF, SBA_IPM_NORM_BRAF, TSB_IPM_NORM_BRAF, Willemain_IPM_NORM_BRAF, MLP_IPM_NORM_BRAF, LightGBM_IPM_NORM_BRAF)
-plot_NORM_BRAF <- plotting(ServiceLevels_ESC_NORM_BRAF, "BRAF", "NORM")
-plot_NORM_BRAF[1]
-plot_NORM_BRAF[2]
-plot_NORM_BRAF[3]
-plot_NORM_BRAF[4]
-
-ServiceLevels_ESC_NORM_AUTO <- rbind(Croston_IPM_NORM_AUTO, SES_IPM_NORM_AUTO, SBA_IPM_NORM_AUTO, TSB_IPM_NORM_AUTO, Willemain_IPM_NORM_AUTO, MLP_IPM_NORM_AUTO, LightGBM_IPM_NORM_AUTO)
-plot_NORM_AUTO <- plotting(ServiceLevels_ESC_NORM_AUTO, "AUTO", "NORM")
-plot_NORM_AUTO[1]
-plot_NORM_AUTO[2]
-plot_NORM_AUTO[3]
-plot_NORM_AUTO[4]
-
-ServiceLevels_ESC_NORM_OIL <- rbind(Croston_IPM_NORM_OIL, SES_IPM_NORM_OIL, SBA_IPM_NORM_OIL, TSB_IPM_NORM_OIL, Willemain_IPM_NORM_OIL, MLP_IPM_NORM_OIL, LightGBM_IPM_NORM_OIL)
-plot_NORM_OIL <- plotting(ServiceLevels_ESC_NORM_OIL, "OIL", "NORM")
-plot_NORM_OIL[1]
-plot_NORM_OIL[2]
-plot_NORM_OIL[3]
-plot_NORM_OIL[4]
-
 
 ####################################################
 ### ESC GAMMA ###
@@ -554,36 +479,6 @@ MLP_IPM_GAMMA_OIL <- IPM_GAMMA(OIL, trainOIL, testOIL, MLP_OIL, pricesOIL, "OIL"
 LightGBM_IPM_GAMMA_OIL <- IPM_GAMMA(OIL, trainOIL, testOIL, LightGBM_OIL, pricesOIL, "OIL" , "LightGBM")
 Willemain_IPM_GAMMA_OIL <- IPM_GAMMA(OIL, trainOIL, testOIL, Willemain_OIL, pricesOIL, "OIL" , "Willemain")
 
-
-ServiceLevels_ESC_GAMMA_MAN <- rbind(Croston_IPM_GAMMA_MAN, SES_IPM_GAMMA_MAN, SBA_IPM_GAMMA_MAN, TSB_IPM_GAMMA_MAN, Willemain_IPM_GAMMA_MAN, MLP_IPM_GAMMA_MAN, LightGBM_IPM_GAMMA_MAN)
-plot_GAMMA_MAN <- plotting(ServiceLevels_ESC_GAMMA_MAN, "MAN", "GAMMA")
-plot_GAMMA_MAN[1]
-plot_GAMMA_MAN[2]
-plot_GAMMA_MAN[3]
-plot_GAMMA_MAN[4]
-
-ServiceLevels_ESC_GAMMA_BRAF <- rbind(Croston_IPM_GAMMA_BRAF, SES_IPM_GAMMA_BRAF, SBA_IPM_GAMMA_BRAF, TSB_IPM_GAMMA_BRAF, Willemain_IPM_GAMMA_BRAF, MLP_IPM_GAMMA_BRAF, LightGBM_IPM_GAMMA_BRAF)
-plot_GAMMA_BRAF <- plotting(ServiceLevels_ESC_GAMMA_BRAF, "BRAF", "GAMMA")
-plot_GAMMA_BRAF[1]
-plot_GAMMA_BRAF[2]
-plot_GAMMA_BRAF[3]
-plot_GAMMA_BRAF[4]
-
-ServiceLevels_ESC_GAMMA_AUTO <- rbind(Croston_IPM_GAMMA_AUTO, SES_IPM_GAMMA_AUTO, SBA_IPM_GAMMA_AUTO, TSB_IPM_GAMMA_AUTO, Willemain_IPM_GAMMA_AUTO, MLP_IPM_GAMMA_AUTO, LightGBM_IPM_GAMMA_AUTO)
-plot_GAMMA_AUTO <- plotting(ServiceLevels_ESC_GAMMA_AUTO, "AUTO", "GAMMA")
-plot_GAMMA_AUTO[1]
-plot_GAMMA_AUTO[2]
-plot_GAMMA_AUTO[3]
-plot_GAMMA_AUTO[4]
-
-ServiceLevels_ESC_GAMMA_OIL <- rbind(Croston_IPM_GAMMA_OIL, SES_IPM_GAMMA_OIL, SBA_IPM_GAMMA_OIL, TSB_IPM_GAMMA_OIL, Willemain_IPM_GAMMA_OIL, MLP_IPM_GAMMA_OIL, LightGBM_IPM_GAMMA_OIL)
-plot_GAMMA_OIL <- plotting(ServiceLevels_ESC_GAMMA_OIL, "OIL", "GAMMA")
-plot_GAMMA_OIL[1]
-plot_GAMMA_OIL[2]
-plot_GAMMA_OIL[3]
-plot_GAMMA_OIL[4]
-
-
 ####################################################
 ### ESC NEGBIN ###
 
@@ -766,32 +661,3 @@ TSB_IPM_NEGBIN_OIL <- IPM_NEGBIN(OIL, trainOIL, testOIL, TSB_OIL, pricesOIL, "OI
 MLP_IPM_NEGBIN_OIL <- IPM_NEGBIN(OIL, trainOIL, testOIL, MLP_OIL, pricesOIL, "OIL" , "MLP")
 LightGBM_IPM_NEGBIN_OIL <- IPM_NEGBIN(OIL, trainOIL, testOIL, LightGBM_OIL, pricesOIL, "OIL" , "LightGBM")
 Willemain_IPM_NEGBIN_OIL <- IPM_NEGBIN(OIL, trainOIL, testOIL, Willemain_OIL, pricesOIL, "OIL" , "Willemain")
-
-
-ServiceLevels_ESC_NEGBIN_MAN <- rbind(Croston_IPM_NEGBIN_MAN, SES_IPM_NEGBIN_MAN, SBA_IPM_NEGBIN_MAN, TSB_IPM_NEGBIN_MAN, Willemain_IPM_NEGBIN_MAN, MLP_IPM_NEGBIN_MAN, LightGBM_IPM_NEGBIN_MAN)
-plot_NEGBIN_MAN <- plotting(ServiceLevels_ESC_NEGBIN_MAN, "MAN", "NEGBIN")
-plot_NEGBIN_MAN[1]
-plot_NEGBIN_MAN[2]
-plot_NEGBIN_MAN[3]
-plot_NEGBIN_MAN[4]
-
-ServiceLevels_ESC_NEGBIN_BRAF <- rbind(Croston_IPM_NEGBIN_BRAF, SES_IPM_NEGBIN_BRAF, SBA_IPM_NEGBIN_BRAF, TSB_IPM_NEGBIN_BRAF, Willemain_IPM_NEGBIN_BRAF, MLP_IPM_NEGBIN_BRAF, LightGBM_IPM_NEGBIN_BRAF)
-plot_NEGBIN_BRAF <- plotting(ServiceLevels_ESC_NEGBIN_BRAF, "BRAF", "NEGBIN")
-plot_NEGBIN_BRAF[1]
-plot_NEGBIN_BRAF[2]
-plot_NEGBIN_BRAF[3]
-plot_NEGBIN_BRAF[4]
-
-ServiceLevels_ESC_NEGBIN_AUTO <- rbind(Croston_IPM_NEGBIN_AUTO, SES_IPM_NEGBIN_AUTO, SBA_IPM_NEGBIN_AUTO, TSB_IPM_NEGBIN_AUTO, Willemain_IPM_NEGBIN_AUTO, MLP_IPM_NEGBIN_AUTO, LightGBM_IPM_NEGBIN_AUTO)
-plot_NEGBIN_AUTO <- plotting(ServiceLevels_ESC_NEGBIN_AUTO, "AUTO", "NEGBIN")
-plot_NEGBIN_AUTO[1]
-plot_NEGBIN_AUTO[2]
-plot_NEGBIN_AUTO[3]
-plot_NEGBIN_AUTO[4]
-
-ServiceLevels_ESC_NEGBIN_OIL <- rbind(Croston_IPM_NEGBIN_OIL, SES_IPM_NEGBIN_OIL, SBA_IPM_NEGBIN_OIL, TSB_IPM_NEGBIN_OIL, Willemain_IPM_NEGBIN_OIL, MLP_IPM_NEGBIN_OIL, LightGBM_IPM_NEGBIN_OIL)
-plot_NEGBIN_OIL <- plotting(ServiceLevels_ESC_NEGBIN_OIL, "OIL", "NEGBIN")
-plot_NEGBIN_OIL[1]
-plot_NEGBIN_OIL[2]
-plot_NEGBIN_OIL[3]
-plot_NEGBIN_OIL[4]
