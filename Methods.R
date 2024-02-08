@@ -87,41 +87,7 @@ FAM <- function(train_data, test_data, predictions) {
 }
 
 
-# Inventory performance measures (IPM) -> NEEDS ADJUSTMENT!
-IPM <- function(train_data, test_data, predictions, leadtimes, prices, usedMethod) {
-  targetFillRates <- c(qnorm(0.75),qnorm(0.8),qnorm(0.85),qnorm(0.9),qnorm(0.95),qnorm(0.99),qnorm(0.999999))
-  leadtimes <- as.data.frame(leadtimes)
-  prices <- as.data.frame(prices)
-  
-  holdingCosts <- matrix(c(0.75,0.8,0.85,0.9,0.95,0.99,0.9999999), ncol = 7)
-  fillRate <- matrix(ncol=7)
-  averageFillRateItem <- matrix(ncol=7)
-  fillRateFiller <- matrix(rep(NA, nrow(test_data)), ncol = nrow(test_data))
-  
-  for (i in 1:ncol(predictions)){
-    leadtimeDemand <- mean(t(predictions[,i]))
-    #stdev <- std(t(train_data[i])) --> This is Daan, below: change to standard deviation function sd
-    stdev <- sd(t(train_data[i]))
-    stockLevelR <- (targetFillRates * stdev + leadtimeDemand)
-    holdingCosts <- rbind(holdingCosts, (0.25 * (stockLevelR * prices[i,])))
-    for (j in 1:length(targetFillRates)){
-      fillRateFiller <- stockLevelR[j] / t(test_data[i])[(t(test_data[i]) > 0)]
-      fillRateFiller <- c(fillRateFiller, t(test_data[i])[(t(test_data[i]) == 0)])
-      fillRateFiller[fillRateFiller >= 1] <- 1
-      fillRateFiller[fillRateFiller == 0] <- 1
-      averageFillRateItem[j] <- mean(fillRateFiller)
-    }
-    fillRate <- rbind(fillRate, averageFillRateItem)
-  }
-  
-  holding <- colSums(holdingCosts[-1,])
-  procentualHolding <- holding/holding[1]
-  achievedFillRate <- colMeans(fillRate[-1,])
-  serviceLevel <- data.frame(achievedFillRate = achievedFillRate, holding = holding, targetfillrates = c(0.75,0.8,0.85,0.9,0.95,0.99,0.9999999), method = usedMethod)
-  
-  return(serviceLevel)
-}
-
+# Inventory performance measures (IPM) -> See the Rscrip InventoryPerformance.R
 
 
 ############################# CROSTON AND VARIANTS #############################
